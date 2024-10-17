@@ -380,3 +380,189 @@ export function Avatar(props) {
 useGLTF.preload("/models/670ea59bcb839ac69db1733f.glb");
 //useGLTF.preload("/models/6706fc83faa60817d00ccb3f.glb");
 useGLTF.preload("/models/animations.glb");
+
+
+
+
+// import { useAnimations, useGLTF } from "@react-three/drei";
+// import { useFrame } from "@react-three/fiber";
+// import { button, useControls } from "leva";
+// import React, { useEffect, useRef, useState } from "react";
+
+// import * as THREE from "three";
+// import { useChat } from "../hooks/useChat";
+
+// const facialExpressions = {
+//   // Tus expresiones faciales aquí...
+// };
+
+// const corresponding = {
+//   A: "viseme_PP",
+//   B: "viseme_kk",
+//   C: "viseme_I",
+//   D: "viseme_AA",
+//   E: "viseme_O",
+//   F: "viseme_U",
+//   G: "viseme_FF",
+//   H: "viseme_TH",
+//   X: "viseme_PP",
+// };
+
+// let setupMode = false;
+
+// export function Avatar(props) {
+//   const { nodes, materials, scene } = useGLTF("/models/670ea59bcb839ac69db1733f.glb");
+//   const { message, onMessagePlayed, chat } = useChat();
+//   const [lipsync, setLipsync] = useState();
+//   const [audio, setAudio] = useState();
+//   const group = useRef();
+//   const canvasRef = useRef();
+
+//   useEffect(() => {
+//     // Manejador de pérdida de contexto WebGL
+//     const handleContextLost = (event) => {
+//       event.preventDefault();
+//       console.warn("Contexto WebGL perdido. Intentando recuperación...");
+//     };
+
+//     const handleContextRestored = () => {
+//       console.log("Contexto WebGL restaurado.");
+//     };
+
+//     const canvas = canvasRef.current || document.querySelector('canvas');
+//     canvas.addEventListener('webglcontextlost', handleContextLost, false);
+//     canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+
+//     return () => {
+//       canvas.removeEventListener('webglcontextlost', handleContextLost);
+//       canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+//     };
+//   }, []);
+
+//   useEffect(() => {
+//     if (!message) {
+//       setAnimation("Idle");
+//       return;
+//     }
+//     setAnimation(message.animation);
+//     setFacialExpression(message.facialExpression);
+//     setLipsync(message.lipsync);
+    
+//     const audio = new Audio("data:audio/mp3;base64," + message.audio);
+//     audio.play();
+//     setAudio(audio);
+//     audio.onended = onMessagePlayed;
+//   }, [message]);
+
+//   const { animations } = useGLTF("/models/animations.glb");
+//   const { actions, mixer } = useAnimations(animations, group);
+//   const [animation, setAnimation] = useState(
+//     animations.find((a) => a.name === "Idle") ? "Idle" : animations[0].name
+//   );
+
+//   useEffect(() => {
+//     actions[animation]
+//       .reset()
+//       .fadeIn(mixer.stats.actions.inUse === 0 ? 0 : 0.5)
+//       .play();
+//     return () => actions[animation].fadeOut(0.5);
+//   }, [animation]);
+
+//   const lerpMorphTarget = (target, value, speed = 0.1) => {
+//     scene.traverse((child) => {
+//       if (child.isSkinnedMesh && child.morphTargetDictionary) {
+//         const index = child.morphTargetDictionary[target];
+//         if (index === undefined || child.morphTargetInfluences[index] === undefined) {
+//           return;
+//         }
+//         child.morphTargetInfluences[index] = THREE.MathUtils.lerp(
+//           child.morphTargetInfluences[index],
+//           value,
+//           speed
+//         );
+//       }
+//     });
+//   };
+
+//   const [blink, setBlink] = useState(false);
+//   const [winkLeft, setWinkLeft] = useState(false);
+//   const [winkRight, setWinkRight] = useState(false);
+//   const [facialExpression, setFacialExpression] = useState("");
+
+//   useFrame(() => {
+//     if (!setupMode) {
+//       Object.keys(nodes.EyeLeft.morphTargetDictionary).forEach((key) => {
+//         const mapping = facialExpressions[facialExpression];
+//         if (key === "eyeBlinkLeft" || key === "eyeBlinkRight") {
+//           return; // eyes wink/blink are handled separately
+//         }
+//         if (mapping && mapping[key]) {
+//           lerpMorphTarget(key, mapping[key], 0.1);
+//         } else {
+//           lerpMorphTarget(key, 0, 0.1);
+//         }
+//       });
+
+//       lerpMorphTarget("eyeBlinkLeft", blink || winkLeft ? 1 : 0, 0.5);
+//       lerpMorphTarget("eyeBlinkRight", blink || winkRight ? 1 : 0, 0.5);
+
+//       if (message && lipsync) {
+//         const currentAudioTime = audio.currentTime;
+//         const appliedMorphTargets = [];
+//         lipsync.mouthCues.forEach((mouthCue) => {
+//           if (currentAudioTime >= mouthCue.start && currentAudioTime <= mouthCue.end) {
+//             appliedMorphTargets.push(corresponding[mouthCue.value]);
+//             lerpMorphTarget(corresponding[mouthCue.value], 1, 0.2);
+//           }
+//         });
+//         Object.values(corresponding).forEach((value) => {
+//           if (!appliedMorphTargets.includes(value)) {
+//             lerpMorphTarget(value, 0, 0.1);
+//           }
+//         });
+//       }
+//     }
+//   });
+
+//   useEffect(() => {
+//     let blinkTimeout;
+//     const nextBlink = () => {
+//       blinkTimeout = setTimeout(() => {
+//         setBlink(true);
+//         setTimeout(() => {
+//           setBlink(false);
+//           nextBlink();
+//         }, 200);
+//       }, THREE.MathUtils.randInt(1000, 5000));
+//     };
+//     nextBlink();
+//     return () => clearTimeout(blinkTimeout);
+//   }, []);
+
+//   // Limpieza de recursos
+//   useEffect(() => {
+//     return () => {
+//       scene.traverse((child) => {
+//         if (child.geometry) child.geometry.dispose();
+//         if (child.material) {
+//           if (Array.isArray(child.material)) {
+//             child.material.forEach((mat) => mat.dispose());
+//           } else {
+//             child.material.dispose();
+//           }
+//         }
+//       });
+//     };
+//   }, [scene]);
+
+//   return (
+//     <group {...props} dispose={null} ref={group}>
+//       <primitive object={nodes.Hips} />
+//       {/* Renderizado de los otros SkinnedMeshes */}
+//       <canvas ref={canvasRef} />
+//     </group>
+//   );
+// }
+
+// useGLTF.preload("/models/670ea59bcb839ac69db1733f.glb");
+// useGLTF.preload("/models/animations.glb");
