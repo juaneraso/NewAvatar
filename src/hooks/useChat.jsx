@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const backendUrl = "http://localhost:3000";
+//const backendUrl = "http://localhost:3000";
 
-//const backendUrl = import.meta.env.VITE_APP_BACK;
+const backendUrl = import.meta.env.VITE_APP_BACK;
 
 
 const ChatContext = createContext();
@@ -26,7 +26,7 @@ export const ChatProvider = ({ children }) => {
     setLoading(false);
   };
 
-  
+
 
   // const chat = async (message) => {
   //   setLoading(true);
